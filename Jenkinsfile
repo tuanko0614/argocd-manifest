@@ -1,28 +1,37 @@
-node {
-    def app
+pipeline {
+    agent any
 
-    stage('Clone repository') {
-      
-
-        checkout scm
+    environment {
+        GIT_USERNAME = 'tuandt0614' // Thay bằng tên đăng nhập GitHub của bạn
+        DOCKERTAG = 'latest' // Thay bằng tag Docker của bạn hoặc giá trị biến
     }
 
-    stage('Update GIT') {
-            script {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                        //def encodedPassword = URLEncoder.encode("$GIT_PASSWORD",'UTF-8')
-                        sh "git config user.email tuandt0614@gmail.com.com"
-                        sh "git config user.name tuandt0614"
-                        //sh "git switch master"
-                        sh "cat deployment.yaml"
-                        sh "sed -i 's+raj80dockerid/test.*+tuandt0614/test:${DOCKERTAG}+g' deployment.yaml"
-                        sh "cat deployment.yaml"
-                        sh "git add ."
-                        sh "git commit -m 'Done by Jenkins Job changemanifest: ${env.BUILD_NUMBER}'"
-                        sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/${GIT_USERNAME}/argocd.git HEAD:main"
-      }
+    stages {
+        stage('Update GIT') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        // Sử dụng thông tin đăng nhập loại Secret text
+                        withCredentials([string(credentialsId: 'github-token', variable: 'GIT_TOKEN')]) {
+                            // Cấu hình Git
+                            sh "git config user.email tuanko0614@gmail.com"
+                            sh "git config user.name tuandt0614"
+                            // Hiển thị nội dung hiện tại của deployment.yaml
+                            sh "cat deployment.yaml"
+                            // Thay đổi tag hình ảnh trong deployment.yaml bằng lệnh sed
+                            sh "sed -i 's+raj80dockerid/test.*+tuandt0614/test:${DOCKERTAG}+g' deployment.yaml"
+                            // Hiển thị nội dung đã cập nhật của deployment.yaml
+                            sh "cat deployment.yaml"
+                            // Stage các thay đổi
+                            sh "git add ."
+                            // Commit các thay đổi
+                            sh "git commit -m 'Done by Jenkins Job changemanifest: ${env.BUILD_NUMBER}'"
+                            // Push các thay đổi lên GitHub repository sử dụng mã thông báo
+                            sh "git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/${GIT_USERNAME}/argocd.git HEAD:main"
+                        }
+                    }
+                }
+            }
+        }
     }
-  }
-}
 }
