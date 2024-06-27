@@ -28,7 +28,7 @@ pipeline {
                             // Stage các thay đổi
                             bat "git add ."
                             // Commit các thay đổi
-                            bat "git commit -m 'Done by Jenkins Job changemanifest: ${env.BUILD_NUMBER}'"
+                            bat "git commit -m 'UpdateManifest_Build${env.BUILD_NUMBER}'"
                             // Push các thay đổi lên GitHub repository sử dụng mã thông báo
                             bat "git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/${GIT_USERNAME}/argocd.git HEAD:main"
                         }
